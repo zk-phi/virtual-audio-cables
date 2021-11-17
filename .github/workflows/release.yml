@@ -1,0 +1,20 @@
+name: Build & Release Electron Binary
+
+on:
+  push:
+    branches:
+      - master
+  workflow_dispatch
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions/setup-node@v2.4.0
+      - run: npm ci
+      - run: npm run build
+      - uses: softprops/action-gh-release@v1
+        with:
+          files: |
+            bin/*
