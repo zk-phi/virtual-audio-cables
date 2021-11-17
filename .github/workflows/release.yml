@@ -2,7 +2,6 @@ name: Build & Release Electron Binary
 
 on:
   push:
-  workflow_dispatch:
 
 jobs:
   build:
