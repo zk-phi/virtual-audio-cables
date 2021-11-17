@@ -12,7 +12,8 @@ jobs:
       - uses: actions/setup-node@v2.4.0
       - run: npm ci
       - run: npm run build
+      - run: for i in bin/*/; do zip -r "${i%/}.zip" "$i"; done
       - uses: softprops/action-gh-release@v1
         with:
           files: |
-            bin/*
+            bin/*.zip
