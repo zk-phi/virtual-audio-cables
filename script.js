@@ -1,7 +1,9 @@
 const vm = new Vue({
   el: "#app",
   data: {
+    /* status */
     enabled: false,
+    /* form inputs */
     inputDevices: [],
     outputDevices: [],
     selectedInput: "default",
@@ -9,7 +11,14 @@ const vm = new Vue({
     gainValue: 1.0,
     enableNoiseReduction: false,
     enableReverb: false,
-    gainNode: null,
+    /* webaudio things */
+    ctx: null,
+    sourceNode: null,
+    dryGainNode: null,
+    wetGainNode: null,
+    convolverNode: null,
+    destinationNode: null,
+    audio: null,
   },
   ready: async () => {
     await navigator.mediaDevices.getUserMedia({
@@ -21,50 +30,99 @@ const vm = new Vue({
     vm.outputDevices = devs.filter(dev => dev.kind === "audiooutput");
   },
   watch: {
-    gainValue: () => {
-      if (vm.gainNode) {
-        vm.gainNode.gain.value = vm.gainValue;
-      }
-    },
+    selectedInput: () => vm.reconnectSource(),
+    selectedOutput: () => vm.updateOutput(),
+    gainValue: () => vm.updateGain(),
+    enableNoiseReduction: () => vm.reconnectSource(),
+    enableReverb: () => vm.updateGain(),
   },
   methods: {
+    toggle: () => {
+      if (vm.enabled) {
+        vm.stop();
+      } else {
+        vm.start();
+      }
+    },
     initialize: async () => {
-      const ctx = new AudioContext();
-      const stream = await navigator.mediaDevices.getUserMedia({
-        audio: {
-          deviceId: vm.selectedInput,
-          autoGainControl: false,
-          noiseSuppression: vm.enableNoiseReduction,
-          echoCancellation: false,
-        },
-        video: false,
-      });
-      let source = new MediaStreamAudioSourceNode(ctx, {
-        mediaStream: stream,
-      });
-      if (vm.enableReverb) {
+      if (!vm.ctx) {
+        /* wire-up a network like this:
+         *
+         *                   dryGainNode --+
+         *                                 |
+         *                                 +-- destinationNode --- audio
+         *                                 |
+         * convolverNode --- wetGainNode --+
+         */
+        vm.ctx = new AudioContext();
+        vm.dryGainNode = new GainNode(vm.ctx, {
+          gain: vm.enableReverb ? 0 : vm.gainValue,
+        });
+        vm.wetGainNode = new GainNode(vm.ctx, {
+          gain: vm.enableReverb ? vm.gainValue : 0,
+        });
         /* taken from the Open AIR Library under the CC-BY License */
         const IR = await fetch("./hamilton_mausoleum.wav");
         const buf = await IR.arrayBuffer();
-        const decodefBuf = await ctx.decodeAudioData(buf);
-        const convolver = new ConvolverNode(ctx, {
+        const decodefBuf = await vm.ctx.decodeAudioData(buf);
+        vm.convolverNode = new ConvolverNode(vm.ctx, {
           buffer: decodefBuf,
         });
-        source.connect(convolver);
-        source = convolver;
+        vm.destinationNode = new MediaStreamAudioDestinationNode(vm.ctx);
+        vm.audio = new Audio();
+        vm.audio.srcObject = vm.destinationNode.stream;
+        vm.audio.setSinkId(vm.selectedOutput);
+        vm.audio.play();
+        vm.dryGainNode.connect(vm.destinationNode);
+        vm.convolverNode.connect(vm.wetGainNode).connect(vm.destinationNode);
       }
-      if (!vm.gainNode) {
-        vm.gainNode = new GainNode(ctx, {
-          gain: vm.gainValue,
+    },
+    reconnectSource: async () => {
+      if (vm.sourceNode) {
+        vm.disconnectSource();
+      }
+      if (vm.ctx) {
+        const stream = await navigator.mediaDevices.getUserMedia({
+          audio: {
+            deviceId: vm.selectedInput,
+            autoGainControl: false,
+            noiseSuppression: vm.enableNoiseReduction,
+            echoCancellation: true,
+          },
+          video: false,
         });
+        vm.sourceNode = new MediaStreamAudioSourceNode(vm.ctx, {
+          mediaStream: stream,
+        });
+        vm.sourceNode.connect(vm.dryGainNode);
+        vm.sourceNode.connect(vm.convolverNode);
       }
-      const dest = new MediaStreamAudioDestinationNode(ctx);
-      source.connect(vm.gainNode).connect(dest);
-      const audio = new Audio();
-      audio.srcObject = dest.stream;
-      audio.setSinkId(vm.selectedOutput);
-      audio.play();
+    },
+    disconnectSource: () => {
+      vm.sourceNode.disconnect();
+      vm.sourceNode = null;
+    },
+    updateGain: () => {
+      if (vm.ctx) {
+        vm.dryGainNode.gain.value = vm.enableReverb ? 0 : vm.gainValue;
+        vm.wetGainNode.gain.value = vm.enableReverb ? vm.gainValue : 0;
+      }
+    },
+    updateOutput: () => {
+      if (vm.ctx) {
+        vm.audio.setSinkId(vm.selectedOutput);
+      }
+    },
+    start: async () => {
+      if (!vm.ctx) {
+        await vm.initialize();
+      }
+      vm.reconnectSource();
       vm.enabled = true;
-    }
+    },
+    stop: () => {
+      vm.disconnectSource();
+      vm.enabled = false;
+    },
   }
 });
