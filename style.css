@@ -1,0 +1,55 @@
+:root {
+  --fg: #ccc;
+  --diminished: #888;
+  --bg: #222;
+  --accent: #ea0;
+}
+
+html {
+  background: var(--bg);
+  color: var(--fg);
+  font-size: 14px;
+  font-family: sans-serif;
+}
+
+body {
+  margin: 8px;
+}
+
+h2 {
+  font-size: 1rem;
+  font-weight: normal;
+  margin: 0 0 2px;
+}
+
+small {
+  display: block;
+  margin-top: 2px;
+  color: var(--diminished);
+  font-size: 0.8rem;
+}
+
+section {
+  margin-bottom: 16px;
+}
+
+label, input[type=range] {
+  display: block;
+  width: 100%;
+}
+
+button, select {
+  display: block;
+  width: 100%;
+  padding: 8px;
+  color: var(--fg);
+  border: 1px solid var(--fg);
+  background: var(--bg);
+  cursor: pointer;
+}
+
+button:hover {
+  color: var(--accent);
+  border: 1px solid var(--accent);
+  background: var(--bg);
+}

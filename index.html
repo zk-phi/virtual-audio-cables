@@ -1,0 +1,42 @@
+<head>
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'">
+  <link rel="stylesheet" href="style.css" type="text/css">
+  <script src="./vue.min.js"></script>
+</head>
+<body>
+  <div id="app">
+    <section>
+      <h2>入力:</h2>
+      <select v-model="selectedInput">
+        <option v-for="dev in inputDevices" :value="dev.deviceId">{{ dev.label }}</option>
+      </select>
+    </section>
+    <section>
+      <h2>出力:</h2>
+      <select v-model="selectedOutput">
+        <option v-for="dev in outputDevices" :value="dev.deviceId">{{ dev.label }}</option>
+      </select>
+      <small>スピーカーはハウリングします</small>
+    </section>
+    <section>
+      <label>
+        <input v-model="enableNoiseReduction" type="checkbox">
+        ノイズ軽減
+      </label>
+      <small>大事な音だけ取り込みます</small>
+    </section>
+    <section>
+      <label>
+        <input v-model="enableReverb" type="checkbox">
+        反響音
+      </label>
+      <small>リラックス効果があります (?)</small>
+    </section>
+    <section>
+      <label>音量: x{{ gainValue }}</label>
+      <input v-model="gainValue" type="range" min="0.0" max="4.0" step="0.1" value="1.0">
+    </section>
+    <button @click="initialize">{{ enabled ? "停止" : "開始" }}</button>
+  </div>
+  <script src="./script.js"></script>
+</body>
