@@ -4,6 +4,9 @@ const vm = new Vue({
     /* status */
     enabled: false,
     showDetails: false,
+    value: 0,
+    reduction: 0,
+    buttonBg: "transparent",
     /* form inputs */
     inputDevices: [],
     outputDevices: [],
@@ -22,6 +25,8 @@ const vm = new Vue({
     dryGainNode: null,
     wetGainNode: null,
     convolverNode: null,
+    compressorNode: null,
+    analyzerNode: null,
     destinationNode: null,
     audio: null,
   },
@@ -42,6 +47,18 @@ const vm = new Vue({
     delayValue: () => vm.updateDelay(),
     filterFreq: () => vm.updateFilter(),
     enableNoiseReduction: () => vm.reconnectSource(),
+    value: () => {
+      const p = (vm.value + 60) / 60 * 100;
+      const p2 = - vm.reduction / 60 * 100;
+      vm.buttonBg =
+        "linear-gradient(" +
+        "to right," +
+        "rgba(255,255,255,0.1) " + (p - p2) + "%," +
+        "rgba(255,255,255,0.2) " + (p - p2) + "%," +
+        "rgba(255,255,255,0.2) " + p + "%," +
+        "transparent " + p + "%" +
+        ")";
+    },
   },
   methods: {
     toggle: () => {
@@ -59,15 +76,19 @@ const vm = new Vue({
          *       |
          *  filterNode
          *       |
-         *       +------------+
-         *       |            |
-         *       |      convolverNode
-         *       |            |
-         *  dryGainNode       |
-         *       |            |
-         *       |       wetGainNode
-         *       |            |
-         *       +------------+
+         *       +--------+
+         *       |        |
+         *       |  convolverNode
+         *       |        |
+         *  dryGainNode   |
+         *       |        |
+         *       |   wetGainNode
+         *       |        |
+         *       +--------+
+         *       |
+         * compressorNode
+         *       |
+         *  analyzerNode
          *       |
          * destinationNode
          *       |
@@ -91,19 +112,31 @@ const vm = new Vue({
         });
         /* taken from the Open AIR Library under the CC-BY License */
         const IR = await fetch("./hamilton_mausoleum.wav");
-        const buf = await IR.arrayBuffer();
-        const decodefBuf = await vm.ctx.decodeAudioData(buf);
+        const IRbuf = await IR.arrayBuffer();
+        const decodefIRBuf = await vm.ctx.decodeAudioData(IRbuf);
         vm.convolverNode = new ConvolverNode(vm.ctx, {
-          buffer: decodefBuf,
+          buffer: decodefIRBuf,
         });
+        vm.compressorNode = new DynamicsCompressorNode(vm.ctx, {});
+        vm.analyzerNode = new AnalyserNode(vm.ctx, {
+          fftSize: 512,
+        });
+        let buf = new Float32Array(512);
+        setInterval(() => {
+          vm.analyzerNode.getFloatTimeDomainData(buf);
+          const value = Math.max(Math.max(...buf), - Math.min(...buf), 1e-128);
+          vm.value = Math.max(-60, Math.LOG10E * 20 * Math.log(value));
+          vm.reduction = vm.compressorNode.reduction;
+        }, 30);
         vm.destinationNode = new MediaStreamAudioDestinationNode(vm.ctx);
         vm.audio = new Audio();
         vm.audio.srcObject = vm.destinationNode.stream;
         vm.audio.setSinkId(vm.selectedOutput);
         vm.audio.play();
         vm.delayNode.connect(vm.filterNode);
-        vm.filterNode.connect(vm.dryGainNode).connect(vm.destinationNode);
-        vm.filterNode.connect(vm.convolverNode).connect(vm.wetGainNode).connect(vm.destinationNode);
+        vm.filterNode.connect(vm.dryGainNode).connect(vm.compressorNode);
+        vm.filterNode.connect(vm.convolverNode).connect(vm.wetGainNode).connect(vm.compressorNode);
+        vm.compressorNode.connect(vm.analyzerNode).connect(vm.destinationNode);
       }
     },
     reconnectSource: async () => {

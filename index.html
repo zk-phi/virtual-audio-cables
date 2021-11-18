@@ -47,7 +47,7 @@
         {{ showDetails ? "- 閉じる" : "+ その他のオプション" }}
       </button>
     </section>
-    <button class="button" @click="toggle">
+    <button class="button" @click="toggle" v-bind:style="{ 'background': buttonBg }">
       {{ enabled ? "停止" : "開始" }}
     </button>
   </div>
