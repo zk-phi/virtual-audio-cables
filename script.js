@@ -3,6 +3,7 @@ const vm = new Vue({
   data: {
     /* status */
     enabled: false,
+    showDetails: false,
     /* form inputs */
     inputDevices: [],
     outputDevices: [],

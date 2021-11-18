@@ -38,7 +38,7 @@ label, input[type=range] {
   width: 100%;
 }
 
-button, select {
+.button, select {
   display: block;
   width: 100%;
   padding: 8px;
@@ -48,8 +48,21 @@ button, select {
   cursor: pointer;
 }
 
-button:hover {
+.button:hover {
   color: var(--accent);
   border: 1px solid var(--accent);
   background: var(--bg);
+}
+
+.link {
+  color: var(--fg);
+  font-weight: bold;
+  padding: 0;
+  background: none;
+  border: none;
+  cursor: pointer;
+}
+
+.link:hover {
+  text-decoration: underline;
 }
