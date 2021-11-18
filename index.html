@@ -16,7 +16,7 @@
       <select v-model="selectedOutput">
         <option v-for="dev in outputDevices" :value="dev.deviceId">{{ dev.label }}</option>
       </select>
-      <small>スピーカーはハウリングします</small>
+      <small>スピーカーはハウリング注意です</small>
     </section>
     <section>
       <label>
@@ -30,7 +30,7 @@
         <input v-model="enableReverb" type="checkbox">
         リバーブ
       </label>
-      <small>作業用 BGM やリラックス用に</small>
+      <small>作業用 BGM に良いという噂です</small>
     </section>
     <section>
       <label>音量: x{{ gainValue }}</label>
