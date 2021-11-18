@@ -4,6 +4,8 @@
 
 ブラウザで試す: https://zk-phi.github.io/gaionkun/
 
+Chrome 以外での動作確認してません。
+
 ## アプリ版
 
 Electron で単体のアプリとして動かせるようにしたものです。
