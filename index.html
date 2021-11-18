@@ -26,17 +26,12 @@
       <small>目立つ音だけを取り込みます</small>
     </section>
     <section>
-      <label>音量: x{{ gainValue }}</label>
-      <input v-model="gainValue" type="range" min="0.0" max="4.0" step="0.1">
-    </section>
-    <section>
-      <button @click="showDetails = !showDetails" class="link">
-        {{ showDetails ? "- 閉じる" : "+ その他のオプション" }}
-      </button>
+      <label>音量: {{ gainValue }}%</label>
+      <input v-model="gainValue" type="range" min="0" max="400" step="1">
     </section>
     <section v-if="showDetails">
-      <label>残響: {{ wetValue }}</label>
-      <input v-model="wetValue" type="range" min="0.0" max="1.0" step="0.01">
+      <label>残響: {{ wetValue }}%</label>
+      <input v-model="wetValue" type="range" min="0" max="100" step="1">
       <small>作業用 BGM に良いという噂です</small>
     </section>
     <section v-if="showDetails">
@@ -46,6 +41,11 @@
     <section v-if="showDetails">
       <label>カットオフ: {{ filterFreq }}hz</label>
       <input v-model="filterFreq" type="range" min="0" max="200" step="1">
+    </section>
+    <section>
+      <button @click="showDetails = !showDetails" class="link">
+        {{ showDetails ? "- 閉じる" : "+ その他のオプション" }}
+      </button>
     </section>
     <button class="button" @click="toggle">
       {{ enabled ? "停止" : "開始" }}

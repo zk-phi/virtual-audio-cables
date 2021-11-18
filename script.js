@@ -9,8 +9,8 @@ const vm = new Vue({
     outputDevices: [],
     selectedInput: "default",
     selectedOutput: "default",
-    wetValue: 0.0,
-    gainValue: 1.0,
+    wetValue: 0,
+    gainValue: 100,
     delayValue: 0.0,
     filterFreq: 80,
     enableNoiseReduction: false,
@@ -84,10 +84,10 @@ const vm = new Vue({
           Q: 0.7,
         });
         vm.dryGainNode = new GainNode(vm.ctx, {
-          gain: (1 - vm.wetValue) * vm.gainValue,
+          gain: (1 - (vm.wetValue / 100)) * (vm.gainValue / 100),
         });
         vm.wetGainNode = new GainNode(vm.ctx, {
-          gain: vm.wetValue * vm.gainValue,
+          gain: (vm.wetValue / 100) * (vm.gainValue / 100),
         });
         /* taken from the Open AIR Library under the CC-BY License */
         const IR = await fetch("./hamilton_mausoleum.wav");
@@ -132,8 +132,8 @@ const vm = new Vue({
     },
     updateGain: () => {
       if (vm.ctx) {
-        vm.dryGainNode.gain.value = (1 - vm.wetValue) * vm.gainValue;
-        vm.wetGainNode.gain.value = vm.wetValue * vm.gainValue;
+        vm.dryGainNode.gain.value = (1 - (vm.wetValue / 100)) * (vm.gainValue / 100);
+        vm.wetGainNode.gain.value = (vm.wetValue / 100) * (vm.gainValue / 100);
       }
     },
     updateDelay: () => {
