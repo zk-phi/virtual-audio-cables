@@ -8,12 +8,16 @@ const vm = new Vue({
     outputDevices: [],
     selectedInput: "default",
     selectedOutput: "default",
+    wetValue: 0.0,
     gainValue: 1.0,
+    delayValue: 0.0,
+    filterFreq: 80,
     enableNoiseReduction: false,
-    enableReverb: false,
     /* webaudio things */
     ctx: null,
     sourceNode: null,
+    delayNode: null,
+    filterNode: null,
     dryGainNode: null,
     wetGainNode: null,
     convolverNode: null,
@@ -32,9 +36,11 @@ const vm = new Vue({
   watch: {
     selectedInput: () => vm.reconnectSource(),
     selectedOutput: () => vm.updateOutput(),
+    wetValue: () => vm.updateGain(),
     gainValue: () => vm.updateGain(),
+    delayValue: () => vm.updateDelay(),
+    filterFreq: () => vm.updateFilter(),
     enableNoiseReduction: () => vm.reconnectSource(),
-    enableReverb: () => vm.updateGain(),
   },
   methods: {
     toggle: () => {
@@ -48,18 +54,39 @@ const vm = new Vue({
       if (!vm.ctx) {
         /* wire-up a network like this:
          *
-         *                   dryGainNode --+
-         *                                 |
-         *                                 +-- destinationNode --- audio
-         *                                 |
-         * convolverNode --- wetGainNode --+
+         *   delayNode
+         *       |
+         *  filterNode
+         *       |
+         *       +------------+
+         *       |            |
+         *       |      convolverNode
+         *       |            |
+         *  dryGainNode       |
+         *       |            |
+         *       |       wetGainNode
+         *       |            |
+         *       +------------+
+         *       |
+         * destinationNode
+         *       |
+         *     audio
          */
         vm.ctx = new AudioContext();
+        vm.delayNode = new DelayNode(vm.ctx, {
+          delayTime: vm.delayValue,
+          maxDelayTime: 3,
+        });
+        vm.filterNode = new BiquadFilterNode(vm.ctx, {
+          type: "highpass",
+          frequency: vm.filterFreq,
+          Q: 0.7,
+        });
         vm.dryGainNode = new GainNode(vm.ctx, {
-          gain: vm.enableReverb ? 0 : vm.gainValue,
+          gain: (1 - vm.wetValue) * vm.gainValue,
         });
         vm.wetGainNode = new GainNode(vm.ctx, {
-          gain: vm.enableReverb ? vm.gainValue : 0,
+          gain: vm.wetValue * vm.gainValue,
         });
         /* taken from the Open AIR Library under the CC-BY License */
         const IR = await fetch("./hamilton_mausoleum.wav");
@@ -73,8 +100,9 @@ const vm = new Vue({
         vm.audio.srcObject = vm.destinationNode.stream;
         vm.audio.setSinkId(vm.selectedOutput);
         vm.audio.play();
-        vm.dryGainNode.connect(vm.destinationNode);
-        vm.convolverNode.connect(vm.wetGainNode).connect(vm.destinationNode);
+        vm.delayNode.connect(vm.filterNode);
+        vm.filterNode.connect(vm.dryGainNode).connect(vm.destinationNode);
+        vm.filterNode.connect(vm.convolverNode).connect(vm.wetGainNode).connect(vm.destinationNode);
       }
     },
     reconnectSource: async () => {
@@ -94,8 +122,7 @@ const vm = new Vue({
         vm.sourceNode = new MediaStreamAudioSourceNode(vm.ctx, {
           mediaStream: stream,
         });
-        vm.sourceNode.connect(vm.dryGainNode);
-        vm.sourceNode.connect(vm.convolverNode);
+        vm.sourceNode.connect(vm.delayNode);
       }
     },
     disconnectSource: () => {
@@ -104,8 +131,18 @@ const vm = new Vue({
     },
     updateGain: () => {
       if (vm.ctx) {
-        vm.dryGainNode.gain.value = vm.enableReverb ? 0 : vm.gainValue;
-        vm.wetGainNode.gain.value = vm.enableReverb ? vm.gainValue : 0;
+        vm.dryGainNode.gain.value = (1 - vm.wetValue) * vm.gainValue;
+        vm.wetGainNode.gain.value = vm.wetValue * vm.gainValue;
+      }
+    },
+    updateDelay: () => {
+      if (vm.ctx) {
+        vm.delayNode.delayTime.value = vm.delayValue;
+      }
+    },
+    updateFilter: () => {
+      if (vm.ctx) {
+        vm.filterNode.frequency.value = vm.filterFreq;
       }
     },
     updateOutput: () => {
