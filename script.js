@@ -223,6 +223,7 @@ const vm = new Vue({
       }
     },
     disconnectSource: () => {
+      vm.sourceNode.mediaStream.getTracks().map(track => track.stop());
       vm.sourceNode.disconnect();
       vm.sourceNode = null;
     },
