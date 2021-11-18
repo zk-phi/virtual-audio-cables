@@ -26,21 +26,41 @@
       <small>目立つ音だけを取り込みます</small>
     </section>
     <section>
-      <label>音量: {{ gainValue }}%</label>
-      <input v-model="gainValue" type="range" min="0" max="400" step="1">
-    </section>
-    <section v-if="showDetails">
       <label>残響: {{ wetValue }}%</label>
       <input v-model="wetValue" type="range" min="0" max="100" step="1">
       <small>作業用 BGM に良いという噂です</small>
     </section>
+    <section>
+      <label>音量: {{ gainValue }}%</label>
+      <input v-model="gainValue" type="range" min="0" max="500" step="1">
+    </section>
     <section v-if="showDetails">
-      <label>遅延: {{ delayValue }}s</label>
+      <label>Delay: {{ delayValue }}s</label>
       <input v-model="delayValue" type="range" min="0.0" max="3.0" step="0.1">
     </section>
     <section v-if="showDetails">
-      <label>カットオフ: {{ filterFreq }}hz</label>
-      <input v-model="filterFreq" type="range" min="0" max="200" step="1">
+      <label>Cutoff: {{ filterFreq }}hz</label>
+      <input v-model="filterFreq" type="range" min="0" max="1200" step="0.1">
+    </section>
+    <section v-if="showDetails">
+      <label>LowMid: {{ lowMidValue }}db</label>
+      <input v-model="lowMidValue" type="range" min="-40" max="40" step="0.1">
+    </section>
+    <section v-if="showDetails">
+      <label>Mid: {{ midValue }}db</label>
+      <input v-model="midValue" type="range" min="-40" max="40" step="0.1">
+    </section>
+    <section v-if="showDetails">
+      <label>HiMid: {{ hiMidValue }}db</label>
+      <input v-model="hiMidValue" type="range" min="-40" max="40" step="0.1">
+    </section>
+    <section v-if="showDetails">
+      <label>High: {{ highValue }}db</label>
+      <input v-model="highValue" type="range" min="-40" max="40" step="0.1">
+    </section>
+    <section v-if="showDetails">
+      <label>DeEss: {{ deEssValue }}db</label>
+      <input v-model="deEssValue" type="range" min="-40" max="40" step="0.1">
     </section>
     <section>
       <button @click="showDetails = !showDetails" class="link">

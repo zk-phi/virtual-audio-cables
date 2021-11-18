@@ -15,7 +15,12 @@ const vm = new Vue({
     wetValue: 0,
     gainValue: 100,
     delayValue: 0.0,
-    filterFreq: 80,
+    lowMidValue: -2.00,
+    midValue: -4.00,
+    hiMidValue: +4.00,
+    highValue: +8.00,
+    deEssValue: -20,
+    filterFreq: 120,
     enableNoiseReduction: false,
     /* webaudio things */
     ctx: null,
@@ -26,6 +31,13 @@ const vm = new Vue({
     wetGainNode: null,
     convolverNode: null,
     compressorNode: null,
+    lowMid: null,
+    mid: null,
+    hiMid: null,
+    high: null,
+    deEss1: null,
+    deEss2: null,
+    deEss3: null,
     analyzerNode: null,
     destinationNode: null,
     audio: null,
@@ -46,6 +58,11 @@ const vm = new Vue({
     gainValue: () => vm.updateGain(),
     delayValue: () => vm.updateDelay(),
     filterFreq: () => vm.updateFilter(),
+    lowMidValue: () => vm.updateLowMid(),
+    midValue: () => vm.updateMid(),
+    hiMidValue: () => vm.updateHiMid(),
+    highValue: () => vm.updateHigh(),
+    deEssValue: () => vm.updateDeEss(),
     enableNoiseReduction: () => vm.reconnectSource(),
     value: () => {
       const p = (vm.value + 60) / 60 * 100;
@@ -88,6 +105,8 @@ const vm = new Vue({
          *       |
          * compressorNode
          *       |
+         *   Eq, De-Ess
+         *       |
          *  analyzerNode
          *       |
          * destinationNode
@@ -102,7 +121,7 @@ const vm = new Vue({
         vm.filterNode = new BiquadFilterNode(vm.ctx, {
           type: "highpass",
           frequency: vm.filterFreq,
-          Q: 0.7,
+          Q: 1,
         });
         vm.dryGainNode = new GainNode(vm.ctx, {
           gain: (1 - (vm.wetValue / 100)) * (vm.gainValue / 100),
@@ -118,6 +137,47 @@ const vm = new Vue({
           buffer: decodefIRBuf,
         });
         vm.compressorNode = new DynamicsCompressorNode(vm.ctx, {});
+        vm.lowMid = new BiquadFilterNode(vm.ctx, {
+          type: "peaking",
+          frequency: 244.3,
+          Q: 3.49,
+          gain: vm.lowMidValue,
+        });
+        vm.mid = new BiquadFilterNode(vm.ctx, {
+          type: "peaking",
+          frequency: 824.9,
+          Q: 1.92,
+          gain: vm.midValue,
+        });
+        vm.hiMid = new BiquadFilterNode(vm.ctx, {
+          type: "peaking",
+          frequency: 3250,
+          Q: 1.96,
+          gain: vm.hiMidValue,
+        });
+        vm.high = new BiquadFilterNode(vm.ctx, {
+          type: "highshelf",
+          frequency: 9570,
+          gain: vm.highValue,
+        });
+        vm.deEss1 = new BiquadFilterNode(vm.ctx, {
+          type: "peaking",
+          frequency: 2100,
+          Q: 50,
+          gain: vm.deEssValue,
+        });
+        vm.deEss2 = new BiquadFilterNode(vm.ctx, {
+          type: "peaking",
+          frequency: 4200,
+          Q: 50,
+          gain: vm.deEssValue,
+        });
+        vm.deEss3 = new BiquadFilterNode(vm.ctx, {
+          type: "peaking",
+          frequency: 8400,
+          Q: 50,
+          gain: vm.deEssValue,
+        });
         vm.analyzerNode = new AnalyserNode(vm.ctx, {
           fftSize: 512,
         });
@@ -133,10 +193,13 @@ const vm = new Vue({
         vm.audio.srcObject = vm.destinationNode.stream;
         vm.audio.setSinkId(vm.selectedOutput);
         vm.audio.play();
-        vm.delayNode.connect(vm.filterNode);
-        vm.filterNode.connect(vm.dryGainNode).connect(vm.compressorNode);
+        vm.delayNode.connect(vm.filterNode).connect(vm.dryGainNode).connect(vm.compressorNode);
         vm.filterNode.connect(vm.convolverNode).connect(vm.wetGainNode).connect(vm.compressorNode);
-        vm.compressorNode.connect(vm.analyzerNode).connect(vm.destinationNode);
+        vm.compressorNode.connect(vm.lowMid);
+        vm.lowMid.connect(vm.mid).connect(vm.hiMid).connect(vm.high);
+        vm.high.connect(vm.deEss1);
+        vm.deEss1.connect(vm.deEss2).connect(vm.deEss3);
+        vm.deEss3.connect(vm.analyzerNode).connect(vm.destinationNode);
       }
     },
     reconnectSource: async () => {
@@ -177,6 +240,38 @@ const vm = new Vue({
     updateFilter: () => {
       if (vm.ctx) {
         vm.filterNode.frequency.value = vm.filterFreq;
+      }
+    },
+    updateEq1: () => {
+      if (vm.ctx) {
+        vm.eq1.gain.value = vm.eq1Value;
+      }
+    },
+    updateLowMid: () => {
+      if (vm.ctx) {
+        vm.lowMid.gain.value = vm.lowMidValue;
+      }
+    },
+    updateMid: () => {
+      if (vm.ctx) {
+        vm.mid.gain.value = vm.midValue;
+      }
+    },
+    updateHiMid: () => {
+      if (vm.ctx) {
+        vm.hiMid.gain.value = vm.hiMidValue;
+      }
+    },
+    updateHigh: () => {
+      if (vm.ctx) {
+        vm.high.gain.value = vm.highValue;
+      }
+    },
+    updateDeEss: () => {
+      if (vm.ctx) {
+        vm.deEss1.gain.value = vm.deEssValue;
+        vm.deEss2.gain.value = vm.deEssValue;
+        vm.deEss3.gain.value = vm.deEssValue;
       }
     },
     updateOutput: () => {
