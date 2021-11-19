@@ -8,14 +8,11 @@
   <div id="app">
     <section v-if="!standalone">
       <h1>外音取り込み君</h1>
-      <div>
-        外音をマイクで取り込んで、イヤホンなどから流します。 Chrome のみ動作確認。
-      </div>
-      <div>
-        <button v-if="installEvent" class="link" @click="install">
-          アプリとしてインストールするとオフラインでも使えます！
-        </button>
-      </div>
+      外音をマイクで取り込んで、イヤホンなどから流します。 Chrome のみ動作確認。<br />
+      音質の補正を入れているので、簡易的な音声フィルタとしても使えるかもです。<br />
+      <button v-if="installEvent" class="link" @click="install">
+        アプリとしてインストールするとオフラインでも使えます！
+      </button>
     </section>
     <section>
       <h2>入力:</h2>
