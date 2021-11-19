@@ -9,7 +9,7 @@
       "type": "image/png"
     }
   ],
-  "start_url": "/gaionkun",
+  "start_url": "/gaionkun/",
   "display": "fullscreen",
   "theme_color": "#ea0",
   "background_color": "#222"
