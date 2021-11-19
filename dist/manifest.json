@@ -1,0 +1,16 @@
+{
+  "name": "外音取込君",
+  "short_name": "外音取込君",
+  "description": "マイクから取り込んだ外音をイヤホンなどに流すアプリです",
+  "icons": [
+    {
+      "src": "favicon.ico",
+      "sizes": "64x64",
+      "type": "image/x-icon"
+    }
+  ],
+  "start_url": "/index.html",
+  "display": "fullscreen",
+  "theme_color": "#ea0",
+  "background_color": "#222"
+}
