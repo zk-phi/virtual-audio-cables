@@ -1,4 +1,5 @@
 <head>
+  <title>外音取込君</title>
   <meta http-equiv="Content-Security-Policy" content="default-src 'self'">
   <link rel="stylesheet" href="style.css" type="text/css">
   <link rel="manifest" href="manifest.json">
@@ -7,7 +8,7 @@
 <body>
   <div id="app">
     <section v-if="!standalone">
-      <h1>外音取り込み君</h1>
+      <h1>外音取込君</h1>
       外音をマイクで取り込んで、イヤホンなどから流します。 Chrome のみ動作確認。<br />
       音質の補正を入れているので、簡易的な音声フィルタとしても使えるかもです。<br />
       <button v-if="installEvent" class="link" @click="install">
