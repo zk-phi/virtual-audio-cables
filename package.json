@@ -2,6 +2,7 @@
   "name": "gaionkun",
   "main": "main.js",
   "scripts": {
+    "build": "workbox generateSW workbox-config.js"
   },
   "devDependencies": {
     "workbox-cli": "^6.4.1"
