@@ -4,12 +4,12 @@
   "description": "マイクから取り込んだ外音をイヤホンなどに流すアプリです",
   "icons": [
     {
-      "src": "favicon.ico",
-      "sizes": "64x64",
-      "type": "image/x-icon"
+      "src": "ico.png",
+      "sizes": "144x144",
+      "type": "image/png"
     }
   ],
-  "start_url": "/index.html",
+  "start_url": "/",
   "display": "fullscreen",
   "theme_color": "#ea0",
   "background_color": "#222"
