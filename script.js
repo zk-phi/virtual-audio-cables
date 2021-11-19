@@ -27,9 +27,7 @@ const vm = new Vue({
     sourceNode: null,
     delayNode: null,
     filterNode: null,
-    dryGainNode: null,
-    wetGainNode: null,
-    convolverNode: null,
+    gainNode: null,
     compressorNode: null,
     lowMid: null,
     mid: null,
@@ -38,6 +36,9 @@ const vm = new Vue({
     deEss1: null,
     deEss2: null,
     deEss3: null,
+    dryGainNode: null,
+    wetGainNode: null,
+    convolverNode: null,
     analyzerNode: null,
     destinationNode: null,
     audio: null,
@@ -54,7 +55,7 @@ const vm = new Vue({
   watch: {
     selectedInput: () => vm.reconnectSource(),
     selectedOutput: () => vm.updateOutput(),
-    wetValue: () => vm.updateGain(),
+    wetValue: () => vm.updateWettiness(),
     gainValue: () => vm.updateGain(),
     delayValue: () => vm.updateDelay(),
     filterFreq: () => vm.updateFilter(),
@@ -93,6 +94,12 @@ const vm = new Vue({
          *       |
          *  filterNode
          *       |
+         *    gainNode
+         *       |
+         * compressorNode
+         *       |
+         *   Eq, De-Ess
+         *       |
          *       +--------+
          *       |        |
          *       |  convolverNode
@@ -102,10 +109,6 @@ const vm = new Vue({
          *       |   wetGainNode
          *       |        |
          *       +--------+
-         *       |
-         * compressorNode
-         *       |
-         *   Eq, De-Ess
          *       |
          *  analyzerNode
          *       |
@@ -123,18 +126,8 @@ const vm = new Vue({
           frequency: vm.filterFreq,
           Q: 1,
         });
-        vm.dryGainNode = new GainNode(vm.ctx, {
-          gain: (1 - (vm.wetValue / 100)) * (vm.gainValue / 100),
-        });
-        vm.wetGainNode = new GainNode(vm.ctx, {
-          gain: (vm.wetValue / 100) * (vm.gainValue / 100),
-        });
-        /* taken from the Open AIR Library under the CC-BY License */
-        const IR = await fetch("./hamilton_mausoleum.wav");
-        const IRbuf = await IR.arrayBuffer();
-        const decodefIRBuf = await vm.ctx.decodeAudioData(IRbuf);
-        vm.convolverNode = new ConvolverNode(vm.ctx, {
-          buffer: decodefIRBuf,
+        vm.gainNode = new GainNode(vm.ctx, {
+          gain: vm.gainValue / 100,
         });
         vm.compressorNode = new DynamicsCompressorNode(vm.ctx, {});
         vm.lowMid = new BiquadFilterNode(vm.ctx, {
@@ -178,6 +171,19 @@ const vm = new Vue({
           Q: 50,
           gain: vm.deEssValue,
         });
+        vm.dryGainNode = new GainNode(vm.ctx, {
+          gain: 1 - (vm.wetValue / 100),
+        });
+        vm.wetGainNode = new GainNode(vm.ctx, {
+          gain: vm.wetValue / 100,
+        });
+        /* taken from the Open AIR Library under the CC-BY License */
+        const IR = await fetch("./hamilton_mausoleum.wav");
+        const IRbuf = await IR.arrayBuffer();
+        const decodefIRBuf = await vm.ctx.decodeAudioData(IRbuf);
+        vm.convolverNode = new ConvolverNode(vm.ctx, {
+          buffer: decodefIRBuf,
+        });
         vm.analyzerNode = new AnalyserNode(vm.ctx, {
           fftSize: 512,
         });
@@ -193,13 +199,12 @@ const vm = new Vue({
         vm.audio.srcObject = vm.destinationNode.stream;
         vm.audio.setSinkId(vm.selectedOutput);
         vm.audio.play();
-        vm.delayNode.connect(vm.filterNode).connect(vm.dryGainNode).connect(vm.compressorNode);
-        vm.filterNode.connect(vm.convolverNode).connect(vm.wetGainNode).connect(vm.compressorNode);
-        vm.compressorNode.connect(vm.lowMid);
-        vm.lowMid.connect(vm.mid).connect(vm.hiMid).connect(vm.high);
-        vm.high.connect(vm.deEss1);
-        vm.deEss1.connect(vm.deEss2).connect(vm.deEss3);
-        vm.deEss3.connect(vm.analyzerNode).connect(vm.destinationNode);
+        vm.delayNode.connect(vm.filterNode).connect(vm.gainNode).connect(vm.compressorNode);
+        vm.compressorNode.connect(vm.lowMid).connect(vm.mid).connect(vm.hiMid).connect(vm.high);
+        vm.high.connect(vm.deEss1).connect(vm.deEss2).connect(vm.deEss3);
+        vm.deEss3.connect(vm.dryGainNode).connect(vm.analyzerNode);
+        vm.deEss3.connect(vm.convolverNode).connect(vm.wetGainNode).connect(vm.analyzerNode);
+        vm.analyzerNode.connect(vm.destinationNode);
       }
     },
     reconnectSource: async () => {
@@ -229,8 +234,13 @@ const vm = new Vue({
     },
     updateGain: () => {
       if (vm.ctx) {
-        vm.dryGainNode.gain.value = (1 - (vm.wetValue / 100)) * (vm.gainValue / 100);
-        vm.wetGainNode.gain.value = (vm.wetValue / 100) * (vm.gainValue / 100);
+        vm.gainNode.gain.value = vm.gainValue / 100;
+      }
+    },
+    updateWettiness: () => {
+      if (vm.ctx) {
+        vm.dryGainNode.gain.value = 1 - (vm.wetValue / 100);
+        vm.wetGainNode.gain.value = vm.wetValue / 100;
       }
     },
     updateDelay: () => {
