@@ -54,6 +54,9 @@ if (data.standalone) {
 
 window.matchMedia('(display-mode: standalone)').addEventListener('change', (evt) => {
   data.standalone = !!evt.matches;
+  if (data.standalone) {
+    window.resizeTo(220, 500);
+  }
 });
 
 window.addEventListener('beforeinstallprompt', (e) => {
