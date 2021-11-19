@@ -2,12 +2,8 @@
   "name": "gaionkun",
   "main": "main.js",
   "scripts": {
-    "start": "electron .",
-    "build": "electron-packager . gaionkun --all --out=bin --overwrite"
   },
   "devDependencies": {
-    "electron": "^16.0.0",
-    "electron-packager": "^15.4.0",
     "workbox-cli": "^6.4.1"
   }
 }
