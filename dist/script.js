@@ -1,48 +1,69 @@
+if ("serviceWorker" in navigator) {
+  navigator.serviceWorker.register("sw.js");
+}
+
+const data = {
+  /* status */
+  enabled: false,
+  showDetails: false,
+  value: 0,
+  reduction: 0,
+  buttonBg: "transparent",
+  installEvent: null,
+  standalone: window.matchMedia('(display-mode: standalone)').matches,
+  /* form inputs */
+  inputDevices: [],
+  outputDevices: [],
+  selectedInput: "default",
+  selectedOutput: "default",
+  wetValue: 0,
+  gainValue: 100,
+  delayValue: 0.0,
+  lowMidValue: -2.00,
+  midValue: -4.00,
+  hiMidValue: +4.00,
+  highValue: +8.00,
+  deEssValue: -20,
+  filterFreq: 120,
+  enableNoiseReduction: false,
+  /* webaudio things */
+  ctx: null,
+  sourceNode: null,
+  delayNode: null,
+  filterNode: null,
+  gainNode: null,
+  compressorNode: null,
+  lowMid: null,
+  mid: null,
+  hiMid: null,
+  high: null,
+  deEss1: null,
+  deEss2: null,
+  deEss3: null,
+  dryGainNode: null,
+  wetGainNode: null,
+  convolverNode: null,
+  analyzerNode: null,
+  destinationNode: null,
+  audio: null,
+};
+
+if (data.standalone) {
+  window.resizeTo(220, 500);
+}
+
+window.matchMedia('(display-mode: standalone)').addEventListener('change', (evt) => {
+  data.standalone = !!evt.matches;
+});
+
+window.addEventListener('beforeinstallprompt', (e) => {
+  data.installEvent = e;
+  e.preventDefault();
+});
+
 const vm = new Vue({
   el: "#app",
-  data: {
-    /* status */
-    enabled: false,
-    showDetails: false,
-    value: 0,
-    reduction: 0,
-    buttonBg: "transparent",
-    /* form inputs */
-    inputDevices: [],
-    outputDevices: [],
-    selectedInput: "default",
-    selectedOutput: "default",
-    wetValue: 0,
-    gainValue: 100,
-    delayValue: 0.0,
-    lowMidValue: -2.00,
-    midValue: -4.00,
-    hiMidValue: +4.00,
-    highValue: +8.00,
-    deEssValue: -20,
-    filterFreq: 120,
-    enableNoiseReduction: false,
-    /* webaudio things */
-    ctx: null,
-    sourceNode: null,
-    delayNode: null,
-    filterNode: null,
-    gainNode: null,
-    compressorNode: null,
-    lowMid: null,
-    mid: null,
-    hiMid: null,
-    high: null,
-    deEss1: null,
-    deEss2: null,
-    deEss3: null,
-    dryGainNode: null,
-    wetGainNode: null,
-    convolverNode: null,
-    analyzerNode: null,
-    destinationNode: null,
-    audio: null,
-  },
+  data: data,
   ready: async () => {
     await navigator.mediaDevices.getUserMedia({
       audio: true,
@@ -300,6 +321,9 @@ const vm = new Vue({
     stop: () => {
       vm.disconnectSource();
       vm.enabled = false;
+    },
+    install: () => {
+      vm.installEvent.prompt();
     },
   }
 });

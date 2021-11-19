@@ -1,10 +1,22 @@
 <head>
   <meta http-equiv="Content-Security-Policy" content="default-src 'self'">
   <link rel="stylesheet" href="style.css" type="text/css">
+  <link rel="manifest" href="manifest.json">
   <script src="./vue.min.js"></script>
 </head>
 <body>
   <div id="app">
+    <section v-if="!standalone">
+      <h1>外音取り込み君</h1>
+      <div>
+        外音をマイクで取り込んで、イヤホンなどから流します。 Chrome のみ動作確認。
+      </div>
+      <div>
+        <button v-if="installEvent" class="link" @click="install">
+          アプリとしてインストールするとオフラインでも使えます！
+        </button>
+      </div>
+    </section>
     <section>
       <h2>入力:</h2>
       <select v-model="selectedInput">
