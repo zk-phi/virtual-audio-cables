@@ -4,13 +4,12 @@ if ("serviceWorker" in navigator) {
 
 class ReverbNode extends GainNode {
   constructor (ctx, options) {
-    const wetness = options.wetness || 0;
     super(ctx, { gain: 1 });
     this._dryGainNode = new GainNode(ctx, {
-      gain: (1 - wetness),
+      gain: (1 - options.wetness),
     });
     this._wetGainNode = new GainNode(ctx, {
-      gain: wetness,
+      gain: options.wetness,
     });
     this._convolverNode = new ConvolverNode(ctx, {
       buffer: options.buffer,
@@ -36,7 +35,6 @@ class ReverbNode extends GainNode {
 
 class SurgicalEqNode extends BiquadFilterNode {
   constructor (ctx, options) {
-    const octave = options.octave || 1;
     super(ctx, {
       type: "peaking",
       frequency: options.frequency,
