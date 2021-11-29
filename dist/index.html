@@ -69,6 +69,10 @@
       <input v-model="highValue" type="range" min="-40" max="40" step="0.1">
     </section>
     <section v-if="showDetails">
+      <label>DeEss: {{ deEssFreq }}Hz</label>
+      <input v-model="deEssFreq" type="range" min="1000" max="3000" step="1">
+    </section>
+    <section v-if="showDetails">
       <label>DeEss: {{ deEssValue }}db</label>
       <input v-model="deEssValue" type="range" min="-40" max="40" step="0.1">
     </section>

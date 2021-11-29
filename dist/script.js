@@ -2,6 +2,75 @@ if ("serviceWorker" in navigator) {
   navigator.serviceWorker.register("sw.js");
 }
 
+class ReverbNode extends GainNode {
+  constructor (ctx, options) {
+    const wetness = options.wetness || 0;
+    super(ctx, { gain: 1 });
+    this._dryGainNode = new GainNode(ctx, {
+      gain: (1 - wetness),
+    });
+    this._wetGainNode = new GainNode(ctx, {
+      gain: wetness,
+    });
+    this._convolverNode = new ConvolverNode(ctx, {
+      buffer: options.buffer,
+    });
+    this.connect(this._dryGainNode);
+    this.connect(this._convolverNode);
+    this._convolverNode.connect(this._wetGainNode);
+    this.connect = (node) => {
+      this._dryGainNode.connect(node);
+      this._wetGainNode.connect(node);
+    };
+    this.disconnect = (node) => {
+      this._dryGainNode.disconnect(node);
+      this._wetGainNode.disconnect(node);
+    }
+  }
+
+  setWetness (value) {
+    this._dryGainNode.gain.value = (1 - value);
+    this._wetGainNode.gain.value = value;
+  }
+}
+
+class SurgicalEqNode extends BiquadFilterNode {
+  constructor (ctx, options) {
+    const octave = options.octave || 1;
+    super(ctx, {
+      type: "peaking",
+      frequency: options.frequency,
+      Q: options.Q,
+    });
+    this._children = (new Array(options.octave - 1)).fill(null).map((_, ix) => (
+      new BiquadFilterNode(ctx, {
+        type: "peaking",
+        frequency: options.frequency * Math.pow(2, ix + 1),
+        Q: options.Q,
+        gain: options.gain,
+      })
+    ));
+    const outNode = this._children.reduce((l, r) => l.connect(r), this);
+    this.connect = (node) => outNode.connect(node);
+    this.disconnect = (node) => outNode.disconnect(node);
+  }
+
+  setFrequency (value) {
+    this.frequency.value = value;
+    this._children.forEach((node, ix) => node.frequency.value = value * Math.pow(2, ix + 1));
+  }
+
+  setGain (value) {
+    this.gain.value = value;
+    this._children.forEach((node, ix) => node.gain.value = value);
+  }
+
+  setQ (value) {
+    this.Q.value = value;
+    this._children.forEach((node, ix) => node.Q.value = value);
+  }
+}
+
 const data = {
   /* status */
   enabled: false,
@@ -24,6 +93,7 @@ const data = {
   hiMidValue: +4.00,
   highValue: +8.00,
   deEssValue: -20,
+  deEssFreq: 2050,
   filterFreq: 120,
   enableNoiseReduction: false,
   /* webaudio things */
@@ -37,12 +107,8 @@ const data = {
   mid: null,
   hiMid: null,
   high: null,
-  deEss1: null,
-  deEss2: null,
-  deEss3: null,
-  dryGainNode: null,
-  wetGainNode: null,
-  convolverNode: null,
+  deEss: null,
+  reverbNode: null,
   analyzerNode: null,
   destinationNode: null,
   audio: null,
@@ -87,7 +153,8 @@ const vm = new Vue({
     midValue: () => vm.updateMid(),
     hiMidValue: () => vm.updateHiMid(),
     highValue: () => vm.updateHigh(),
-    deEssValue: () => vm.updateDeEss(),
+    deEssValue: () => vm.updateDeEssValue(),
+    deEssFreq: () => vm.updateDeEssFreq(),
     enableNoiseReduction: () => vm.reconnectSource(),
     value: () => {
       const p = (vm.value + 60) / 60 * 100;
@@ -124,15 +191,7 @@ const vm = new Vue({
          *       |
          *   Eq, De-Ess
          *       |
-         *       +--------+
-         *       |        |
-         *       |  convolverNode
-         *       |        |
-         *  dryGainNode   |
-         *       |        |
-         *       |   wetGainNode
-         *       |        |
-         *       +--------+
+         *     Reverb
          *       |
          *  analyzerNode
          *       |
@@ -179,36 +238,19 @@ const vm = new Vue({
           frequency: 9570,
           gain: vm.highValue,
         });
-        vm.deEss1 = new BiquadFilterNode(vm.ctx, {
-          type: "peaking",
-          frequency: 2100,
+        vm.deEss = new SurgicalEqNode(vm.ctx, {
+          octave: 3,
+          frequency: vm.deEssFreq,
           Q: 50,
           gain: vm.deEssValue,
-        });
-        vm.deEss2 = new BiquadFilterNode(vm.ctx, {
-          type: "peaking",
-          frequency: 4200,
-          Q: 50,
-          gain: vm.deEssValue,
-        });
-        vm.deEss3 = new BiquadFilterNode(vm.ctx, {
-          type: "peaking",
-          frequency: 8400,
-          Q: 50,
-          gain: vm.deEssValue,
-        });
-        vm.dryGainNode = new GainNode(vm.ctx, {
-          gain: 1 - (vm.wetValue / 100),
-        });
-        vm.wetGainNode = new GainNode(vm.ctx, {
-          gain: vm.wetValue / 100,
         });
         /* taken from the Open AIR Library under the CC-BY License */
         const IR = await fetch("./hamilton_mausoleum.wav");
         const IRbuf = await IR.arrayBuffer();
-        const decodefIRBuf = await vm.ctx.decodeAudioData(IRbuf);
-        vm.convolverNode = new ConvolverNode(vm.ctx, {
-          buffer: decodefIRBuf,
+        const decodedIRBuf = await vm.ctx.decodeAudioData(IRbuf);
+        vm.reverbNode = new ReverbNode(vm.ctx, {
+          wetness: vm.wetValue / 100,
+          buffer: decodedIRBuf,
         });
         vm.analyzerNode = new AnalyserNode(vm.ctx, {
           fftSize: 512,
@@ -227,9 +269,7 @@ const vm = new Vue({
         vm.audio.play();
         vm.delayNode.connect(vm.filterNode).connect(vm.gainNode).connect(vm.compressorNode);
         vm.compressorNode.connect(vm.lowMid).connect(vm.mid).connect(vm.hiMid).connect(vm.high);
-        vm.high.connect(vm.deEss1).connect(vm.deEss2).connect(vm.deEss3);
-        vm.deEss3.connect(vm.dryGainNode).connect(vm.analyzerNode);
-        vm.deEss3.connect(vm.convolverNode).connect(vm.wetGainNode).connect(vm.analyzerNode);
+        vm.high.connect(vm.deEss).connect(vm.reverbNode).connect(vm.analyzerNode);
         vm.analyzerNode.connect(vm.destinationNode);
       }
     },
@@ -267,8 +307,7 @@ const vm = new Vue({
     },
     updateWettiness: () => {
       if (vm.ctx) {
-        vm.dryGainNode.gain.value = 1 - (vm.wetValue / 100);
-        vm.wetGainNode.gain.value = vm.wetValue / 100;
+        vm.reverbNode.setWetness(vm.wetValue / 100);
       }
     },
     updateDelay: () => {
@@ -306,11 +345,14 @@ const vm = new Vue({
         vm.high.gain.value = vm.highValue;
       }
     },
-    updateDeEss: () => {
+    updateDeEssValue: () => {
       if (vm.ctx) {
-        vm.deEss1.gain.value = vm.deEssValue;
-        vm.deEss2.gain.value = vm.deEssValue;
-        vm.deEss3.gain.value = vm.deEssValue;
+        vm.deEss.setGain(vm.deEssValue);
+      }
+    },
+    updateDeEssFreq: () => {
+      if (vm.ctx) {
+        vm.deEss.setFrequency(vm.deEssFreq);
       }
     },
     updateOutput: () => {
