@@ -140,7 +140,9 @@ const vm = new Vue({
          *       |
          *     audio
          */
-        vm.ctx = new AudioContext();
+        vm.ctx = new AudioContext({
+          sampleRate: 48000,
+        });
         vm.delayNode = new DelayNode(vm.ctx, {
           delayTime: vm.delayValue,
           maxDelayTime: 3,
@@ -242,6 +244,8 @@ const vm = new Vue({
             autoGainControl: false,
             noiseSuppression: vm.enableNoiseReduction,
             echoCancellation: true,
+            sampleRate: { ideal: 48000 },
+            sampleSize: { ideal: 24 },
           },
           video: false,
         });
