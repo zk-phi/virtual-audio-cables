@@ -89,7 +89,7 @@ const data = {
   lowMidValue: -4.00,
   midValue: -8.00,
   hiMidValue: -4.00,
-  highValue: +8.00,
+  highValue: +12.00,
   deEssValue: -8.00,
   deEssFreq: 2050,
   filterFreq: 120,
@@ -265,8 +265,8 @@ const vm = new Vue({
         vm.audio.srcObject = vm.destinationNode.stream;
         vm.audio.setSinkId(vm.selectedOutput);
         vm.audio.play();
-        vm.delayNode.connect(vm.filterNode).connect(vm.gainNode).connect(vm.compressorNode);
-        vm.compressorNode.connect(vm.lowMid).connect(vm.mid).connect(vm.hiMid).connect(vm.high);
+        vm.delayNode.connect(vm.filterNode).connect(vm.gainNode).connect(vm.lowMid);
+        vm.lowMid.connect(vm.mid).connect(vm.hiMid).connect(vm.compressorNode).connect(vm.high);
         vm.high.connect(vm.deEss).connect(vm.reverbNode).connect(vm.analyzerNode);
         vm.analyzerNode.connect(vm.destinationNode);
       }
