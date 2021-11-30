@@ -286,7 +286,7 @@ const vm = new Vue({
             deviceId: vm.selectedInput,
             autoGainControl: false,
             noiseSuppression: vm.enableNoiseReduction,
-            echoCancellation: true,
+            echoCancellation: false,
             sampleRate: { ideal: 48000 },
             sampleSize: { ideal: 24 },
           },
