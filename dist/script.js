@@ -33,39 +33,33 @@ class ReverbNode extends GainNode {
   }
 }
 
-class SurgicalEqNode extends BiquadFilterNode {
+class SurgicalEqNode extends GainNode {
   constructor (ctx, options) {
-    super(ctx, {
-      type: "peaking",
-      frequency: options.frequency,
-      Q: options.Q,
-    });
-    this._children = (new Array(options.octave - 1)).fill(null).map((_, ix) => (
+    super(ctx, { gain: 1 });
+    this._filters = (new Array(options.octave)).fill(null).map((_, ix) => (
       new BiquadFilterNode(ctx, {
         type: "peaking",
-        frequency: options.frequency * Math.pow(2, ix + 1),
+        frequency: options.frequency * Math.pow(2, ix),
         Q: options.Q,
         gain: options.gain,
       })
     ));
-    const outNode = this._children.reduce((l, r) => l.connect(r), this);
+    const outNode = this._filters.reduce((l, r) => l.connect(r), this);
+    this.connect(this._filters[0]);
     this.connect = (node) => outNode.connect(node);
     this.disconnect = (node) => outNode.disconnect(node);
   }
 
   setFrequency (value) {
-    this.frequency.value = value;
-    this._children.forEach((node, ix) => node.frequency.value = value * Math.pow(2, ix + 1));
+    this._filters.forEach((node, ix) => node.frequency.value = value * Math.pow(2, ix));
   }
 
   setGain (value) {
-    this.gain.value = value;
-    this._children.forEach((node, ix) => node.gain.value = value);
+    this._filters.forEach((node, ix) => node.gain.value = value);
   }
 
   setQ (value) {
-    this.Q.value = value;
-    this._children.forEach((node, ix) => node.Q.value = value);
+    this._filters.forEach((node, ix) => node.Q.value = value);
   }
 }
 
