@@ -122,6 +122,8 @@ window.addEventListener('beforeinstallprompt', (e) => {
   e.preventDefault();
 });
 
+const FFT_SIZE = 256;
+
 const vm = new Vue({
   el: "#app",
   data: data,
@@ -247,9 +249,9 @@ const vm = new Vue({
           buffer: decodedIRBuf,
         });
         vm.analyzerNode = new AnalyserNode(vm.ctx, {
-          fftSize: 512,
+          fftSize: FFT_SIZE,
         });
-        let buf = new Float32Array(512);
+        let buf = new Float32Array(FFT_SIZE);
         setInterval(() => {
           vm.analyzerNode.getFloatTimeDomainData(buf);
           const value = Math.max(Math.max(...buf), - Math.min(...buf), 1e-128);
