@@ -49,20 +49,20 @@
       <input v-model="delayValue" type="range" min="0.0" max="3.0" step="0.1">
     </section>
     <section v-if="showDetails">
-      <label>Cutoff: {{ filterFreq }}hz</label>
-      <input v-model="filterFreq" type="range" min="0" max="300" step="0.1">
+      <label>Cutoff: {{ precompEqFreqs[0] }}hz</label>
+      <input v-model="precompEqFreqs[0]" type="range" min="0" max="300" step="0.1">
     </section>
     <section v-if="showDetails">
-      <label>LowMid: {{ lowMidValue }}db</label>
-      <input v-model="lowMidValue" type="range" min="-40" max="0" step="0.1">
+      <label>LowMid: {{ precompEqGains[1] }}db</label>
+      <input v-model="precompEqGains[1]" type="range" min="-40" max="0" step="0.1">
     </section>
     <section v-if="showDetails">
-      <label>Mid: {{ midValue }}db</label>
-      <input v-model="midValue" type="range" min="-40" max="0" step="0.1">
+      <label>Mid: {{ precompEqGains[2] }}db</label>
+      <input v-model="precompEqGains[2]" type="range" min="-40" max="0" step="0.1">
     </section>
     <section v-if="showDetails">
-      <label>HiMid: {{ hiMidValue }}db</label>
-      <input v-model="hiMidValue" type="range" min="-40" max="0" step="0.1">
+      <label>HiMid: {{ precompEqGains[3] }}db</label>
+      <input v-model="precompEqGains[3]" type="range" min="-40" max="0" step="0.1">
     </section>
     <section v-if="showDetails">
       <label>Highshelf: {{ highValue }}db</label>
