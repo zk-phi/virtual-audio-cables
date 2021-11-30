@@ -284,9 +284,9 @@ const vm = new Vue({
         const stream = await navigator.mediaDevices.getUserMedia({
           audio: {
             deviceId: vm.selectedInput,
-            autoGainControl: false,
-            noiseSuppression: vm.enableNoiseReduction,
-            echoCancellation: false,
+            autoGainControl: { ideal: false },
+            noiseSuppression: { ideal: vm.enableNoiseReduction },
+            echoCancellation: { ideal: false },
             sampleRate: { ideal: 48000 },
             sampleSize: { ideal: 24 },
           },
