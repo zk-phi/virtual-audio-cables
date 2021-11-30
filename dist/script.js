@@ -83,9 +83,9 @@ const data = {
   lowMidValue: -4.00,
   midValue: -8.00,
   hiMidValue: -4.00,
-  highValue: +12.00,
+  highValue: +8.00,
   deEssValue: -8.00,
-  deEssFreq: 2050,
+  deEssFreq: 2100,
   filterFreq: 120,
   enableNoiseReduction: false,
   /* webaudio things */
