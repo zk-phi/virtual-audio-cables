@@ -175,13 +175,15 @@ const vm = new Vue({
          *
          *   delayNode
          *       |
+         *    gainNode
+         *       |
          *  filterNode
          *       |
-         *    gainNode
+         *      Eq1
          *       |
          * compressorNode
          *       |
-         *   Eq, De-Ess
+         *  Eq2, De-Ess
          *       |
          *     Reverb
          *       |
@@ -259,7 +261,7 @@ const vm = new Vue({
         vm.audio.srcObject = vm.destinationNode.stream;
         vm.audio.setSinkId(vm.selectedOutput);
         vm.audio.play();
-        vm.delayNode.connect(vm.filterNode).connect(vm.gainNode).connect(vm.lowMid);
+        vm.delayNode.connect(vm.gainNode).connect(vm.filterNode).connect(vm.lowMid);
         vm.lowMid.connect(vm.mid).connect(vm.hiMid).connect(vm.compressorNode).connect(vm.high);
         vm.high.connect(vm.deEss).connect(vm.reverbNode).connect(vm.analyzerNode);
         vm.analyzerNode.connect(vm.destinationNode);
