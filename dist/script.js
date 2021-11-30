@@ -93,6 +93,12 @@ class EqualizerNode extends GainNode {
   }
 }
 
+async function getIRBuf (ctx, url) {
+  const IR = await fetch("./hamilton_mausoleum.wav");
+  const IRbuf = await IR.arrayBuffer();
+  return await ctx.decodeAudioData(IRbuf);
+}
+
 const data = {
   /* status */
   enabled: false,
@@ -244,13 +250,10 @@ const vm = new Vue({
           Q: 50,
           gain: vm.deEssValue,
         });
-        /* taken from the Open AIR Library under the CC-BY License */
-        const IR = await fetch("./hamilton_mausoleum.wav");
-        const IRbuf = await IR.arrayBuffer();
-        const decodedIRBuf = await vm.ctx.decodeAudioData(IRbuf);
         vm.reverbNode = new ReverbNode(vm.ctx, {
           wetness: vm.wetValue / 100,
-          buffer: decodedIRBuf,
+          /* taken from the Open AIR Library under the CC-BY License */
+          buffer: await getIRBuf(vm.ctx, "./hamilton_mausoleum.wav"),
         });
         vm.analyzerNode = new AnalyserNode(vm.ctx, {
           fftSize: FFT_SIZE,
