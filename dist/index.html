@@ -16,13 +16,13 @@
       </button>
     </section>
     <section>
-      <h2>入力:</h2>
+      <label>入力:</label>
       <select v-model="selectedInput">
         <option v-for="dev in inputDevices" :value="dev.deviceId">{{ dev.label }}</option>
       </select>
     </section>
     <section>
-      <h2>出力:</h2>
+      <label>出力:</label>
       <select v-model="selectedOutput">
         <option v-for="dev in outputDevices" :value="dev.deviceId">{{ dev.label }}</option>
       </select>
