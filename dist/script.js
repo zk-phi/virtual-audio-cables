@@ -117,7 +117,7 @@ const data = {
   gainValue: 100,
   delayValue: 0.0,
   precompEqGains: [-30, -4, -8, -4, 0],
-  precompEqFreqs: [60, 244.3, 824.9, 3250, 9570],
+  precompEqLogFreqs: [0.41, 0.55, 0.67, 0.80, 0.91],
   highValue: +8.00,
   deEssValue: -8.00,
   deEssFreq: 2100,
@@ -155,6 +155,10 @@ window.addEventListener('beforeinstallprompt', (e) => {
 
 const FFT_SIZE = 256;
 const SAMPLE_RATE = 48000;
+const MAX_FREQ = 24000;
+const LOG_MAX_FREQ = Math.log2(24000);
+
+Vue.filter("trim", v => `${v}`.substring(0, 7));
 
 const vm = new Vue({
   el: "#app",
@@ -167,6 +171,11 @@ const vm = new Vue({
     const devs = await navigator.mediaDevices.enumerateDevices();
     vm.inputDevices = devs.filter(dev => dev.kind === "audioinput");
     vm.outputDevices = devs.filter(dev => dev.kind === "audiooutput");
+  },
+  computed: {
+    precompEqFreqs: function () {
+      return this.precompEqLogFreqs.map(v => Math.pow(2, v * LOG_MAX_FREQ));
+    },
   },
   watch: {
     selectedInput: () => vm.reconnectSource(),
