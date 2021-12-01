@@ -154,6 +154,7 @@ window.addEventListener('beforeinstallprompt', (e) => {
 });
 
 const FFT_SIZE = 256;
+const SAMPLE_RATE = 48000;
 
 const vm = new Vue({
   el: "#app",
@@ -223,7 +224,7 @@ const vm = new Vue({
          *     audio
          */
         vm.ctx = new AudioContext({
-          sampleRate: 48000,
+          sampleRate: SAMPLE_RATE,
         });
         vm.delayNode = new DelayNode(vm.ctx, {
           delayTime: vm.delayValue,
@@ -287,7 +288,7 @@ const vm = new Vue({
             autoGainControl: { ideal: false },
             noiseSuppression: { ideal: vm.enableNoiseReduction },
             echoCancellation: { ideal: false },
-            sampleRate: { ideal: 48000 },
+            sampleRate: { ideal: SAMPLE_RATE },
             sampleSize: { ideal: 24 },
           },
           video: false,
