@@ -114,14 +114,15 @@
         <input v-model="deEssValue" type="range" min="-40" max="40" step="0.1">
       </div>
     </section>
-    <section>
+    <section id="foot">
       <button @click="showDetails = !showDetails" class="link">
         {{ showDetails ? "- 閉じる" : "+ その他のオプション" }}
       </button>
+      <canvas id="viz" height=180 width=1024></canvas>
+      <button class="button" @click="toggle" v-bind:style="{ 'background': buttonBg }">
+        {{ enabled ? "停止" : "開始" }}
+      </button>
     </section>
-    <button class="button" @click="toggle" v-bind:style="{ 'background': buttonBg }">
-      {{ enabled ? "停止" : "開始" }}
-    </button>
   </div>
   <script src="./script.js"></script>
 </body>

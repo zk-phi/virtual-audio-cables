@@ -134,6 +134,7 @@ const data = {
   high: null,
   deEss: null,
   reverbNode: null,
+  sourceAnalyzerNode: null,
   analyzerNode: null,
   destinationNode: null,
   audio: null,
@@ -155,7 +156,7 @@ window.addEventListener('beforeinstallprompt', (e) => {
   e.preventDefault();
 });
 
-const FFT_SIZE = 256;
+const FFT_SIZE = 2048;
 const SAMPLE_RATE = 48000;
 const MAX_FREQ = 24000;
 const LOG_MAX_FREQ = Math.log2(24000);
@@ -219,7 +220,7 @@ const vm = new Vue({
          *
          *   delayNode
          *       |
-         *    gainNode
+         *    gainNode -- compressorNode -- analyzerNode
          *       |
          *      Eq1
          *       |
@@ -268,6 +269,9 @@ const vm = new Vue({
           /* taken from the Open AIR Library under the CC-BY License */
           buffer: await getIRBuf(vm.ctx, "./hamilton_mausoleum.wav"),
         });
+        vm.sourceAnalyzerNode = new AnalyserNode(vm.ctx, {
+          fftSize: FFT_SIZE,
+        });
         vm.analyzerNode = new AnalyserNode(vm.ctx, {
           fftSize: FFT_SIZE,
         });
@@ -278,15 +282,63 @@ const vm = new Vue({
           vm.value = Math.max(-60, Math.LOG10E * 20 * Math.log(value));
           vm.reduction = vm.compressorNode.reduction;
         }, 30);
+        const sourceFreqBuf = new Float32Array(FFT_SIZE / 2);
+        const distFreqBuf = new Float32Array(FFT_SIZE / 2);
+        const freqBinSize = MAX_FREQ / (FFT_SIZE / 2);
+        const canvas = document.getElementById("viz");
+        const rencon = canvas.getContext("2d");
+        const canvasY = (db) => Math.min(1, Math.max(0, 0.2 - db / 100)) * canvas.height;
+        const canvasX = (freq) => Math.max(0, Math.log2(freq) / LOG_MAX_FREQ) * canvas.width;
+        setInterval(() => {
+          vm.sourceAnalyzerNode.getFloatFrequencyData(sourceFreqBuf);
+          vm.analyzerNode.getFloatFrequencyData(distFreqBuf);
+          rencon.clearRect(0, 0, canvas.width, canvas.height);
+          /* input (red) */
+          rencon.fillStyle = "rgba(255, 128, 128, 1)";
+          rencon.beginPath();
+          rencon.moveTo(0, canvas.height);
+          sourceFreqBuf.forEach((v, ix) => {
+            rencon.lineTo(canvasX(freqBinSize * ix), canvasY(v));
+          });
+          rencon.lineTo(canvas.width, canvas.height);
+          rencon.closePath();
+          rencon.fill();
+          /* processed (blue) */
+          rencon.fillStyle = "rgba(128, 128, 255, 0.5)";
+          rencon.beginPath();
+          rencon.moveTo(0, canvas.height);
+          distFreqBuf.forEach((v, ix) => {
+            rencon.lineTo(canvasX(freqBinSize * ix), canvasY(v));
+          });
+          rencon.lineTo(canvas.width, canvas.height);
+          rencon.closePath();
+          rencon.fill();
+          /* diff */
+          rencon.strokeStyle = "rgba(128, 255, 128, 1)";
+          rencon.lineWidth = 2;
+          rencon.beginPath();
+          rencon.moveTo(canvasX(0), canvasY(distFreqBuf[0] - sourceFreqBuf[0]));
+          sourceFreqBuf.forEach((v, ix) => {
+            rencon.lineTo(canvasX(freqBinSize * ix), canvasY(distFreqBuf[ix] - v));
+          });
+          rencon.stroke();
+          rencon.strokeStyle = "rgba(128, 255, 128, 0.5)";
+          rencon.beginPath();
+          rencon.moveTo(0, canvasY(0));
+          rencon.lineTo(canvas.width, canvasY(0));
+          rencon.stroke();
+        }, 30);
         vm.destinationNode = new MediaStreamAudioDestinationNode(vm.ctx);
         vm.audio = new Audio();
         vm.audio.srcObject = vm.destinationNode.stream;
         vm.audio.setSinkId(vm.selectedOutput);
         vm.audio.play();
         vm.delayNode.connect(vm.gainNode).connect(vm.equalizerNode).connect(vm.compressorNode);
-        vm.compressorNode.connect(vm.high).connect(vm.deEss).connect(vm.reverbNode)
+        vm.compressorNode.connect(vm.high).connect(vm.deEss).connect(vm.reverbNode);
         vm.reverbNode.connect(vm.destinationNode);
         vm.reverbNode.connect(vm.analyzerNode);
+        vm.gainNode.connect(new DynamicsCompressorNode(vm.ctx, {})).connect(vm.sourceAnalyzerNode);
+        /* vm.delayNode.connect(vm.sourceAnalyzerNode); */
       }
     },
     reconnectSource: async () => {

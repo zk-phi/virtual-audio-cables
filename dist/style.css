@@ -72,3 +72,15 @@ label, input[type=range] {
 .link:hover {
   text-decoration: underline;
 }
+
+#foot {
+  position: sticky;
+  bottom: 0;
+  background: var(--bg);
+}
+
+#viz {
+  width: 100%;
+  height: 180px;
+  margin-bottom: 16px;
+}
