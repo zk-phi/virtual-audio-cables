@@ -45,50 +45,54 @@
       <input v-model="gainValue" type="range" min="0" max="500" step="1">
     </section>
     <section v-if="showDetails">
-      <label>Delay: {{ delayValue }}s</label>
+      <h2>Delay</h2>
+      <label>Time: {{ delayValue }}s</label>
       <input v-model="delayValue" type="range" min="0.0" max="3.0" step="0.1">
     </section>
     <section v-if="showDetails">
-      <h2>Lowshelf (Pre-comp)</h2>
+      <h2>Pre-comp Eq</h2>
       <div>
-        <label>Freq: {{ precompEqFreqs[0] | trim }}hz</label>
+        <label>Lowshelf: {{ precompEqFreqs[0] | trim }}hz</label>
         <input v-model="precompEqLogFreqs[0]" type="range" min="0.01" max="1" step="0.01">
       </div>
       <div>
-        <label>Gain: {{ precompEqGains[0] }}db</label>
+        <label>Lowshelf Gain: {{ precompEqGains[0] }}db</label>
         <input v-model="precompEqGains[0]" type="range" min="-40" max="0" step="0.1">
       </div>
-    </section>
-    <section v-if="showDetails">
-      <h2>LowMid (Pre-comp)</h2>
       <div>
-        <label>Freq: {{ precompEqFreqs[1] | trim }}hz</label>
+        <label>LowMid: {{ precompEqFreqs[1] | trim }}hz</label>
         <input v-model="precompEqLogFreqs[1]" type="range" min="0.01" max="1" step="0.01">
       </div>
       <div>
-        <label>Gain: {{ precompEqGains[1] }}db</label>
+        <label>LowMid Q: {{ precompEqQs[1] }}</label>
+        <input v-model="precompEqQs[1]" type="range" min="0.05" max="5" step="0.05">
+      </div>
+      <div>
+        <label>LowMid Gain: {{ precompEqGains[1] }}db</label>
         <input v-model="precompEqGains[1]" type="range" min="-40" max="0" step="0.1">
       </div>
-    </section>
-    <section v-if="showDetails">
-      <h2>Mid (Pre-comp)</h2>
       <div>
-        <label>Freq: {{ precompEqFreqs[2] | trim }}hz</label>
+        <label>Mid: {{ precompEqFreqs[2] | trim }}hz</label>
         <input v-model="precompEqLogFreqs[2]" type="range" min="0.01" max="1" step="0.01">
       </div>
       <div>
-        <label>Gain: {{ precompEqGains[2] }}db</label>
+        <label>Mid Q: {{ precompEqQs[2] }}</label>
+        <input v-model="precompEqQs[2]" type="range" min="0.05" max="5" step="0.05">
+      </div>
+      <div>
+        <label>Mid Gain: {{ precompEqGains[2] }}db</label>
         <input v-model="precompEqGains[2]" type="range" min="-40" max="0" step="0.1">
       </div>
-    </section>
-    <section v-if="showDetails">
-      <h2>HiMid (Pre-comp)</h2>
       <div>
-        <label>Freq: {{ precompEqFreqs[3] | trim }}hz</label>
+        <label>HiMid: {{ precompEqFreqs[3] | trim }}hz</label>
         <input v-model="precompEqLogFreqs[3]" type="range" min="0.01" max="1" step="0.01">
       </div>
       <div>
-        <label>Gain: {{ precompEqGains[3] }}db</label>
+        <label>HiMid Q: {{ precompEqQs[3] }}</label>
+        <input v-model="precompEqQs[3]" type="range" min="0.05" max="5" step="0.05">
+      </div>
+      <div>
+        <label>HiMid Gain: {{ precompEqGains[3] }}db</label>
         <input v-model="precompEqGains[3]" type="range" min="-40" max="0" step="0.1">
       </div>
     </section>

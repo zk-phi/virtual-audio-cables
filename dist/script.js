@@ -117,7 +117,9 @@ const data = {
   gainValue: 100,
   delayValue: 0.0,
   precompEqGains: [-30, -4, -8, -4, 0],
+  // 62.501, 256.52, 860.48, 3192.8, 9682.6
   precompEqLogFreqs: [0.41, 0.55, 0.67, 0.80, 0.91],
+  precompEqQs: [1, 3.49, 1.92, 1.96, 1],
   highValue: +8.00,
   deEssValue: -8.00,
   deEssFreq: 2100,
@@ -185,6 +187,7 @@ const vm = new Vue({
     delayValue: () => vm.ctx && (vm.delayNode.delayTime.value = vm.delayValue),
     precompEqFreqs: () => vm.ctx && vm.equalizerNode.setFrequencies(vm.precompEqFreqs),
     precompEqGains: () => vm.ctx && vm.equalizerNode.setGains(vm.precompEqGains),
+    precompEqQs: () => vm.ctx && vm.equalizerNode.setQs(vm.precompEqQs),
     highValue: () => vm.ctx && (vm.high.gain.value = vm.highValue),
     deEssValue: () => vm.ctx && vm.deEss.setGain(vm.deEssValue),
     deEssFreq: () => vm.ctx && vm.deEss.setFrequency(vm.deEssFreq),
@@ -245,7 +248,7 @@ const vm = new Vue({
         vm.equalizerNode = new EqualizerNode(vm.ctx, {
           bands: 5,
           frequencies: vm.precompEqFreqs,
-          Qs: [1, 3.49, 1.92, 1.96, 1],
+          Qs: vm.precompEqQs,
           gains: vm.precompEqGains,
         });
         vm.compressorNode = new DynamicsCompressorNode(vm.ctx, {});
