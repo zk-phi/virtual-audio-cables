@@ -1,0 +1,16 @@
+{
+  "name": "外音取込君",
+  "short_name": "外音取込君",
+  "description": "マイクから取り込んだ外音をイヤホンなどに流すアプリです",
+  "icons": [
+    {
+      "src": "ico.png",
+      "sizes": "144x144",
+      "type": "image/png"
+    }
+  ],
+  "start_url": "/gaionkun/",
+  "display": "fullscreen",
+  "theme_color": "#ea0",
+  "background_color": "#222"
+}
