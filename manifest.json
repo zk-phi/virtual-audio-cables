@@ -1,7 +1,7 @@
 {
-  "name": "外音取込君",
-  "short_name": "外音取込君",
-  "description": "マイクから取り込んだ外音をイヤホンなどに流すアプリです",
+  "name": "Virtual Audio Cable(s)",
+  "short_name": "Virtual Audio Cable(s)",
+  "description": "別タブの音などを配信や通話に取り込めるツールです",
   "icons": [
     {
       "src": "ico.png",
@@ -9,7 +9,7 @@
       "type": "image/png"
     }
   ],
-  "start_url": "/gaionkun/",
+  "start_url": "/virtual-audio-cables/",
   "display": "fullscreen",
   "theme_color": "#ea0",
   "background_color": "#222"
