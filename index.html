@@ -34,13 +34,15 @@
     </section>
     <h2>仮想ケーブル</h2>
     <section>
-      <button
-          v-for="(ix, cable) in cables"
-          :style="{ background: meterBgs[ix] }"
-          class="button cable"
-          @click="removeCable(ix)">
-        X {{ cable.input.label }} → {{ cable.output.label }}
-      </button>
+      <div v-for="(ix, cable) in cables">
+        <button
+            :style="{ background: meterBgs[ix] }"
+            class="button cable"
+            @click="removeCable(ix)">
+          X {{ cable.input.label }} → {{ cable.output.label }}
+        </button>
+        <input type="range" min="0" max="1" step="0.01" v-model="volumes[ix]" />
+      </div>
     </section>
   </div>
   <script src="./script.js"></script>

@@ -77,6 +77,7 @@ const data = {
   installEvent: null,
   standalone: window.matchMedia('(display-mode: standalone)').matches,
   cables: [],
+  volumes: [],
   meterBgs: [],
   /* form inputs */
   inputDevices: [],
@@ -128,6 +129,16 @@ const vm = new Vue({
     };
     visualizerFn();
   },
+  watch: {
+    volumes: {
+      handler: () => {
+        vm.volumes.forEach((volume, ix) => {
+          vm.cables[ix].input.gain.value = volume;
+        });
+      },
+      deep: true,
+    },
+  },
   methods: {
     initialize: async () => {
       if (!vm.ctx) {
@@ -145,6 +156,7 @@ const vm = new Vue({
       });
       input.connect(output);
       vm.cables.push({ input, output });
+      vm.volumes.push(1.0);
     },
     removeCable: (ix) => {
       vm.cables[ix].input.disconnect(vm.cables[ix].output);
